@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"></meta>
+        <title>login</title>
+        <style>
+            main{
+                display: flex;
+                flex-wrap:wrap;
+                justify-content: center;
+                align-items: "stretch";
+            }
+            main>.content{
+                flex: none;
+                background-color: beige;
+            }
+            main>.bar{
+                flex: none;
+                width: 250px;
+                background-color:aqua;
+            }
+            .head{
+                background-color: red;
+                font: bolder;
+                color: white;
+                font-size: 32px;
+                text-align: center;
+            }
+            .content{
+                background-color: blanchedalmond;
+            }
+        </style>
+    </head>
+    <body style="margin:0px;">
+        <div class="head" id="room"></div>
+        <div class="content" style="width:500px;height: 500px; margin: auto;overflow:scroll;word-wrap:break-word;" id="content"></div>
+        <div class="content" style="width:500px;margin: auto;background-color:aqua;text-align: center;padding-bottom: 5px;">
+            <from class="bar" style="width:500px;">
+                <div id="name" style="display: inline-block;"></div>: 
+                <input type="text" id="msg"/>
+                <input type="button" value="send" onclick="send()"/>
+            </from>
+        </div>
+        
+        <script>
+            var args=document.location.toString().split("?")[1].split("&");
+            document.getElementById("room").innerHTML=args[0];
+            document.getElementById("name").innerHTML=args[1];
+            var content=document.getElementById("content");
+            var msg=document.getElementById("msg");
+            function send(){
+                var cmd="send?room="+args[0]+"&name="+args[1]+"&msg="+msg.value;
+                var req=new XMLHttpRequest();
+                req.open("get",cmd);
+                req.onload=function(){
+                    content.innerHTML=req.responseText;
+                }
+                req.send();
+            }
+            update();
+            function update(){
+                var cmd="update?room="+args[0];
+                var req=new XMLHttpRequest();
+                req.open("get",cmd);
+                req.onload=function(){
+                    content.innerHTML=req.responseText;
+                }
+                req.send();
+            }
+        </script>
+    </body>
+</html>

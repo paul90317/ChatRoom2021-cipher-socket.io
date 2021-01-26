@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"></meta>
+        <title>login</title>
+        <style>
+            main{
+                display: flex;
+                flex-wrap:wrap;
+                justify-content: center;
+                align-items: "stretch";
+            }
+            main>.content{
+                flex: auto;
+                background-color: beige;
+            }
+            main>.bar{
+                flex: none;
+                width: 250px;
+                background-color:aqua;
+            }
+            .head{
+                background-color: red;
+                font: bolder;
+                color: white;
+                font-size: 32px;
+                text-align: center;
+            }
+        </style>
+        <script>
+            function login(){
+                var room=document.getElementById("room").value;
+                var name=document.getElementById("name").value;
+                document.location="chat?"+room+"&"+name;                
+            }
+        </script>
+    </head>
+    <body style="margin:0px;">
+        <div class="head">
+            Hello Flask
+        </div>
+        <main>
+            <from class="bar" style="width:270px;text-align: center;padding-bottom: 10px;">
+                chat room: <input type="text" id="room"/><br/>
+                nick name: <input type="text" id="name"/><br/>
+                <input type="button" value="login" onclick="login()"/>
+            </from>
+        </main>
+    </body>
+</html>

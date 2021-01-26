@@ -1,4 +1,3 @@
 Flask
 flask
-os
 gunicorn

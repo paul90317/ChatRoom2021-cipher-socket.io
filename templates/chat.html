@@ -44,11 +44,11 @@
             var room=document.getElementById("room").innerHTML=getcookie('room');
             var name=document.getElementById("name").innerHTML=getcookie('name');
             var key=getBytes(sha256(room));//32
-            var roomc=encode(room,key);
+            var roomc=sha256(sha256(key));
             var content=document.getElementById("content");
             var msg=document.getElementById("msg");
 
-            var socket=io.connect("/");
+            var socket=io.connect(":5000");
             socket.on('connect',function(){
                 data={};
                 data.room=roomc;

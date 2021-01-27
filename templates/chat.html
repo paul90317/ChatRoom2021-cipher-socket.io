@@ -3,22 +3,10 @@
     <head>
         <meta charset="utf-8"></meta>
         <title>login</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.0/socket.io.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/forge/0.8.2/forge.all.min.js"></script>
         <style>
-            main{
-                display: flex;
-                flex-wrap:wrap;
-                justify-content: center;
-                align-items: "stretch";
-            }
-            main>.content{
-                flex: none;
-                background-color: beige;
-            }
-            main>.bar{
-                flex: none;
-                width: 250px;
-                background-color:aqua;
-            }
             .head{
                 background-color: red;
                 font: bolder;
@@ -28,44 +16,132 @@
             }
             .content{
                 background-color: blanchedalmond;
+                width:500px;
+                height: 500px;
+                margin: auto;
+                overflow:scroll;
+                word-wrap:break-word;
+            }
+            .form{
+                width:500px;
+                margin: auto;
+                background-color:aqua;
+                text-align: center;
+                padding-bottom: 5px;
+                display: block;
             }
         </style>
     </head>
     <body style="margin:0px;">
         <div class="head" id="room"></div>
-        <div class="content" style="width:500px;height: 500px; margin: auto;overflow:scroll;word-wrap:break-word;" id="content"></div>
-        <div class="content" style="width:500px;margin: auto;background-color:aqua;text-align: center;padding-bottom: 5px;">
-            <from class="bar" style="width:500px;">
-                <div id="name" style="display: inline-block;"></div>: 
-                <input type="text" id="msg"/>
-                <input type="button" value="send" onclick="send()"/>
-            </from>
+        <div class="content" id="content"></div>
+        <div class="form">
+            <div id="name" style="display: inline-block;"></div>: 
+            <input type="text" id="msg"/>
+            <input type="button" value="send" onclick="send()"/>
         </div>
-        
         <script>
-            var args=document.location.toString().split("?")[1].split("&");
-            document.getElementById("room").innerHTML=args[0];
-            document.getElementById("name").innerHTML=args[1];
+            var room=document.getElementById("room").innerHTML=getcookie('room');
+            var name=document.getElementById("name").innerHTML=getcookie('name');
+            var key=getBytes(sha256(room));//32
+            var roomc=encode(room,key);
             var content=document.getElementById("content");
             var msg=document.getElementById("msg");
+
+            var socket=io.connect(":5000");
+            socket.on('connect',function(){
+                data={};
+                data.room=roomc;
+                data.msg=encode(name+" has connected.",key);
+                socket.send(data);//socket.emit('message',...)
+            })
+            socket.on('message',function(data){
+                if(data.room!=roomc)return;
+                content.innerHTML+=decode(data.msg,key)+"<br/>";
+            })
             function send(){
-                var cmd="send?room="+args[0]+"&name="+args[1]+"&msg="+msg.value;
-                var req=new XMLHttpRequest();
-                req.open("get",cmd);
-                req.onload=function(){
-                    content.innerHTML=req.responseText;
-                }
-                req.send();
+                data={};
+                data.room=roomc;
+                data.msg=encode(name+": "+msg.value,key);
+                socket.send(data);
+                msg.value="";
             }
-            update();
-            function update(){
-                var cmd="update?room="+args[0];
-                var req=new XMLHttpRequest();
-                req.open("get",cmd);
-                req.onload=function(){
-                    content.innerHTML=req.responseText;
+            document.body.addEventListener("keydown",function(e){
+                if(e.keyCode==13)send();
+            })
+            function getcookie(id){
+                var arr=document.cookie.split(';');
+                for(var i=0;i<arr.length;i++){
+                    var pair=arr[i].split('=');
+                    if(pair[0].slice(1)==id)return pair[1];
                 }
-                req.send();
+            }
+            function sha256(m)
+	        {
+	            var md = forge.md.sha256.create();  
+                md.start();  
+                md.update(m, "utf8");  
+                var c = md.digest().toHex();  
+                return c;
+            }
+            function getBytes(s){
+                var len=s.length/2;
+                var arr=[];
+                for(var j=0;j<len;j++){
+                    var byte=0;
+                    for(var k=0;k<2;k++){
+                        byte*=16;
+                        byte+=int(s[2*j+k]);
+                    }
+                    arr.push(byte);
+                }
+                return arr;
+            }
+            function int(c){
+                if(c>=0&&c<=9){
+                    return parseInt(c);
+                }
+                switch(c){
+                    case 'a':return 10;
+                    case 'b':return 11;
+                    case 'c':return 12;
+                    case 'd':return 13;
+                    case 'e':return 14;
+                    case 'f':return 15;
+                }
+                return alert("error");
+            }
+            function encode(m,key){
+                var shift_key=key.slice(0,16);
+                var swap_key=key.slice(16,32);
+                var c="";
+                for(var i=0;i<m.length;i++){
+                    c+=String.fromCharCode((m.charCodeAt(i)+shift_key[i%16])%128);
+                }
+                for(var i=0;i<16;i++){
+                    var t=c.slice(0,swap_key[i]%c.length);
+                    c=c.slice(swap_key[i]%c.length);
+                    c+=(t);
+                }
+                return c;
+            }
+            function decode(cc,key){
+                let shift_key=key.slice(0,16);
+                let swap_key=key.slice(16,32);
+                let m="";
+                let c=cc.slice(0);
+                for(var i=15;i>=0;i--){
+                    let p=c.length-swap_key[i]%c.length;
+                    let t=c.slice(0,p);
+                    c=c.slice(p);
+                    c+=(t);
+                }
+                for(let i=0;i<c.length;i++){
+                    let x=c.charCodeAt(i)-shift_key[i%16];
+                    while(x<0)x+=128;
+                    m+=String.fromCharCode(x);
+                }
+                return m;
             }
         </script>
     </body>

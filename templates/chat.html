@@ -48,7 +48,7 @@
             var content=document.getElementById("content");
             var msg=document.getElementById("msg");
 
-            var socket=io.connect(":5000");
+            var socket=io.connect("");
             socket.on('connect',function(){
                 data={};
                 data.room=roomc;

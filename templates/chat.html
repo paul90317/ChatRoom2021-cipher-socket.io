@@ -70,10 +70,10 @@
                 if(e.keyCode==13)send();
             })
             function getcookie(id){
-                var arr=document.cookie.split(';');
+                var arr=document.cookie.split('; ');
                 for(var i=0;i<arr.length;i++){
                     var pair=arr[i].split('=');
-                    if(pair[0].slice(1)==id)return pair[1];
+                    if(pair[0]==id)return pair[1];
                 }
             }
             function sha256(m)

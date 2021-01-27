@@ -10,6 +10,7 @@ def home():
 def chat():
     return render_template("chat.html")
 
+
 @app.route('/send',methods=['GET'])
 def send():
     room=request.args.get('room')

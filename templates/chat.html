@@ -47,6 +47,9 @@
             var roomc=sha256(sha256(key));
             var content=document.getElementById("content");
             var msg=document.getElementById("msg");
+            
+            document.cookie="name=;";
+            document.cookie="room=;";
 
             var socket=io.connect("");
             socket.on('connect',function(){
